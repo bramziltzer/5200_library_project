@@ -22,7 +22,6 @@ def db_connect():
         except Exception as e:
             print("Username or password is incorrect.")
             inpt = input("Type Q to quit or any other character to try again: ")
-
             if inpt.lower == 'q':
                 exit()
         
@@ -31,28 +30,38 @@ def db_connect():
 def main():
 
     # connect to library_system
-    cnx, username = db_connect()
+    #cnx, username = db_connect()
     
-    print(f"Welcome to the inter-library database system, {username}!")
+    #print(f"Welcome to the inter-library database system, {username}!")
     quit_main_loop = False
 
+    options = {
+        1: "Checkout book", 
+        2: "Return book", 
+        3: "Search books", 
+        4: "add books to system",
+        5: "pay fine",
+        6: "search all late fees and overdue books",
+        7: "add/edit/remove member",
+        8: "find book at different library",
+        0: "Quit",
+        }
+    
     while quit_main_loop is False:
         print("What would you like to do? Type the corresponding number to continue.")
-        choice = input("1: Checkout book \n2: Return book \n3: Search books \n0 or Q: Quit")
-        '''
-        add books to system
-        pay fine
-        search all late fees and overdue books
-        add/edit/remove member
-        find book at different library
-        '''
-        match choice.lower():
+        for each in options:
+            print(str(each) + ": " + options[each])
+        choice = int(input("> "))
+        match choice:
             case 0:
                 quit_main_loop = True
-            case 'q':
-                quit_main_loop = True
+            case _:
+                print()
+                print(f"{choice} is invalid. Try a different option.")
+                print()
+                input("Press enter to continue.")
 
-    cnx.close()
+    #cnx.close()
 
 if __name__ == "__main__" :
     main()
