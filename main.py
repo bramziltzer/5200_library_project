@@ -44,9 +44,37 @@ def book_return(cursor):
     pass
 
 def add_book(cursor):
-    quit_book_loop = False
-    while quit_book_loop is False:
-        choice = input()
+    # TODO add cancel option
+    # TODO add data validation (in sql?)
+    print("Add a book to the database using this menu! You'll be asked to" +
+            "confirm details before submitting.")
+    isbn = input("ISBN: ")
+    title = input("Title: ")
+    author_id = input("Author ID: ")
+    genre = input("Genre: ")
+    num_pages = input("Number of pages: ")
+    year_published = input("Year published, formatted YYYY: ")
+    publisher_id = input("Publisher ID: ")
+    library_id = input("Library ID: "), 
+    num_copies = input("Number of copies of this book to add to system: ")
+
+    print(f"ISBN: {isbn} \nTitle: {title} \nAuthor ID: {author_id}" +
+            "\nGenre{genre} \nNumber of pages: {num_pages}" +
+            "\nYear published: {year_published} \nPublisher ID: " +
+            "{publisher_id} \nLibrary ID{library_id} \nNumber of copies " +
+            "to add: {num_copies}\n")
+    
+    good_input = False
+    while good_input is False:
+        choice = input("Type y and press enter to add to system or n to cancel: ")
+        if choice.lower() == "y":
+            stmt = "CALL add_book(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            cursor.execute(stmt, (isbn, title, author_id, genre, num_pages, 
+                            year_published, publisher_id, library_id, num_copies))
+            good_input = True
+        elif choice.lower() == "n":
+            good_input = True
+            input("Book entry canceled. Press enter to return to the main menu.")
 
 def mainloop():
     # connect to library_system
