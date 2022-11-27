@@ -1,4 +1,5 @@
 import pymysql
+
 # TODO add try except to execute statements
 def db_connect():
     # prompt for username and password
@@ -29,7 +30,41 @@ def db_connect():
     return cnx, username
 
 def search_books(cursor):
-    pass
+    # TODO show list of available options before they search?
+    quit_loop = False
+    while not quit_loop:
+        print("Book Search Menu. Type the corresponding number to continue.")
+        print("0: Return to main menu \n1: Search by title \n2: Search by author \n3: Search by ISBN")
+        choice = input("> ")
+        
+        match choice:
+            case '0':
+                quit_loop = True
+            case '1':
+                search_type = 'title'
+                content = input("Title: ")
+            case '2':
+                search_type = 'author'
+                content = input("Author: ")
+            case '3':
+                search_type = 'isbn'
+                content = input("ISBN (13 digits): ")
+            case _:
+                content = None
+                print()
+                print(f"{choice} is invalid.")
+                input("Press enter to return to the search menu.")
+                print()
+
+        if content is not None:
+            # TODO decide what to print, should include number of available books to checkout if any
+            stmt = "CALL search_books(%s, %s);"
+            cursor.execute(stmt, (search_type, content))
+            data = cursor.fetchall()
+            for each in data:
+                print(each) # TODO formatting
+            print()
+            input = ("Press enter to return to search menu.")
 
 def pay_fine(cursor):
     # TODO payment input validation
@@ -53,7 +88,7 @@ def pay_fine(cursor):
     data = cursor.fetchone()
     balance = data.get("fine_balance")
     print(f"{name}'s new balance: {balance}")
-    
+
     print()
     input("Press enter to return to main menu.")
 
