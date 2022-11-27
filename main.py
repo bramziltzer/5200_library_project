@@ -11,7 +11,7 @@ def db_connect():
         try:
             username = input("Username: ")
             password = input("Password: ")
-            cnx = pymysql.connect(
+            conn = pymysql.connect(
                 host='localhost', 
                 user= username, 
                 password= password,
@@ -26,10 +26,9 @@ def db_connect():
             inpt = input("Type q to quit or any other character to try again: ")
             if inpt.lower() == 'q':
                 exit()
-        
-    return cnx, username
+    return conn, username
 
-def search_books(cursor):
+def search_books(conn):
     # TODO show list of available options before they search?
     quit_loop = False
     while not quit_loop:
@@ -40,6 +39,7 @@ def search_books(cursor):
         match choice:
             case '0':
                 quit_loop = True
+                content = None
             case '1':
                 search_type = 'title'
                 content = input("Title: ")
@@ -56,43 +56,58 @@ def search_books(cursor):
                 input("Press enter to return to the search menu.")
                 print()
 
+        # don't 
         if content is not None:
             # TODO decide what to print, should include number of available books to checkout if any
             stmt = "CALL search_books(%s, %s);"
-            cursor.execute(stmt, (search_type, content))
-            data = cursor.fetchall()
-            for each in data:
-                print(each) # TODO formatting
-            print()
-            input = ("Press enter to return to search menu.")
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(stmt, (search_type, content))
+                    data = cursor.fetchall()
+                    if not data:
+                        print("No results found for {search_type}: {content}")
+                    else:
+                        for each in data:
+                            print(each) # TODO formatting
+                        print()
+                        input("Press enter to return to search menu.")
+                finally:
+                    cursor.close()
 
-def pay_fine(cursor):
+
+def pay_fine(conn):
     # TODO payment input validation
     print("Late Fee Payment Menu.")
     member = input("Member ID: ")
-    cursor.execute("CALL search_one_member(%s)", member)
-    data = cursor.fetchone()
-    name = data.get("name")
-    balance = data.get("fine_balance")
 
-    print()
-    print(f"Member: {name} \nLate Fee Balance: {balance}")
-    print()
-    payment = input("Enter payment amount: ")
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute("CALL search_one_member(%s)", member)
+            data = cursor.fetchone()
+            name = data.get("name")
+            balance = data.get("fine_balance")
 
-    stmt = "CALL pay_late_fee(%s, %s);"
-    cursor.execute(stmt, (member, payment))
+            print()
+            print(f"Member: {name} \nLate Fee Balance: {balance}")
+            print()
+            payment = input("Enter payment amount: ")
 
-    # return new balance
-    cursor.execute("CALL search_one_member(%s)", member)
-    data = cursor.fetchone()
-    balance = data.get("fine_balance")
-    print(f"{name}'s new balance: {balance}")
+            stmt = "CALL pay_late_fee(%s, %s);"
+            cursor.execute(stmt, (member, payment))
 
-    print()
-    input("Press enter to return to main menu.")
+            # return new balance
+            cursor.execute("CALL search_one_member(%s)", member)
+            data = cursor.fetchone()
+            balance = data.get("fine_balance")
+            print(f"{name}'s new balance: {balance}")
 
-def manage_members(cursor):
+            print()
+            input("Press enter to return to main menu.")
+        finally:
+            cursor.close()
+    
+
+def manage_members(conn):
     quit_loop = False
     while not quit_loop:
         print("Member Management Menu. Type the corresponding number to continue.")
@@ -108,14 +123,19 @@ def manage_members(cursor):
                 # TODO validate email?
                 member_name = input("New member's full name: ")
                 member_email = input("New member's email: ")
-                stmt = "CALL add_member(%s, %s);"
-                cursor.execute(stmt, (member_email, member_name))
 
-                cursor.execute("SELECT * FROM member WHERE name = member_name AND email = member_email;")
-                data = cursor.fetchone()
-                new_id = data.get("member_id")
-                print(f"Member added. Their new Member ID is: {new_id}")
+                with conn.cursor() as cursor:
+                    try: 
+                        stmt = "CALL add_member(%s, %s);"
+                        cursor.execute(stmt, (member_email, member_name))
 
+                        cursor.execute("SELECT * FROM member WHERE name = member_name AND email = member_email;")
+                        data = cursor.fetchone()
+                        new_id = data.get("member_id")
+                        print(f"Member added. Their new Member ID is: {new_id}")
+                    finally:
+                        cursor.close()
+                
             # remove member
             case '2':
                 member_id = input("Member ID to delete: ")
@@ -125,9 +145,13 @@ def manage_members(cursor):
                     choice = input("Type y to delete member or n to cancel. THIS CAN'T BE UNDONE: ")
                     if choice.lower() == "y":
                         good_input = True
-                        stmt = "CALL remove_member(%s)"
-                        cursor.execute(stmt, member_id)
-                        # TODO add confirmation or error message
+                        with conn.cursor() as cursor:
+                            try:
+                                stmt = "CALL remove_member(%s)"
+                                cursor.execute(stmt, member_id)
+                                # TODO add confirmation or error message
+                            finally:
+                                cursor.close()
                     elif choice.lower() == "n":
                         good_input = True
                         input("Member deletion canceled. Press enter to return to the member management menu.")
@@ -142,7 +166,7 @@ def manage_members(cursor):
                 print()
 
 
-def book_checkout(cursor):
+def book_checkout(conn):
     # TODO add validation
     print("Book Checkout Menu.")
     book_copy_id = input("Book Copy ID (Located on the sticker on the back of the book, NOT the ISBN): ")
@@ -154,8 +178,13 @@ def book_checkout(cursor):
         choice = input("Type y and press enter to checkout book or n to cancel: ")
         if choice.lower() == "y":
             good_input = True
-            stmt = "CALL check_out_books(%s, %s, %s);"
-            cursor.execute(stmt, (book_copy_id, member_id, librarian_id))
+            with conn.cursor() as cursor:
+                try:
+                    stmt = "CALL check_out_books(%s, %s, %s);"
+                    cursor.execute(stmt, (book_copy_id, member_id, librarian_id))
+                    print("Successfully added!") # TODO add better user feedback
+                finally:
+                    cursor.close()
         elif choice.lower() == "n":
             good_input = True
             input("Book checkout canceled. Press enter to return to the main menu.")
@@ -163,7 +192,7 @@ def book_checkout(cursor):
             print(f"{choice} is invalid!")
 
 
-def book_return(cursor):
+def book_return(conn):
     # TODO add validation
     print("Book return menu.")
     book_copy_id = input("Book Copy ID to return (Located on the sticker on the back of the book, NOT the ISBN): ")
@@ -172,8 +201,12 @@ def book_return(cursor):
         choice = input("Type y and press enter to return book or n to cancel: ")
         if choice.lower() == "y":
             good_input = True
-            stmt = "CALL return_books(%s);"
-            cursor.execute(stmt, book_copy_id)
+            with conn.cursor() as cursor:
+                try:
+                    stmt = "CALL return_books(%s);"
+                    cursor.execute(stmt, book_copy_id)
+                finally:
+                    cursor.close()
         elif choice.lower() == "n":
             good_input = True
             input("Book return canceled. Press enter to return to the main menu.")
@@ -181,7 +214,7 @@ def book_return(cursor):
             print(f"{choice} is invalid!")
     
 
-def add_book(cursor):
+def add_book(conn):
     # TODO add cancel option
     # TODO add data validation (in sql?)
     print("Add a book to the database using this menu. You'll be asked to " +
@@ -210,10 +243,14 @@ def add_book(cursor):
     while not good_input:
         choice = input("Type y and press enter to add to system or n to cancel: ")
         if choice.lower() == "y":
-            stmt = "CALL add_book(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-            cursor.execute(stmt, (isbn, title, author_id, genre, num_pages, 
-                            year_published, publisher_id, library_id, num_copies))
             good_input = True
+            with conn.cursor() as cursor:
+                try:
+                    stmt = "CALL add_book(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    cursor.execute(stmt, (isbn, title, author_id, genre, num_pages, 
+                                    year_published, publisher_id, library_id, num_copies))
+                finally:
+                    cursor.close()
         elif choice.lower() == "n":
             good_input = True
             input("Book entry canceled. Press enter to return to the main menu.")
@@ -222,8 +259,7 @@ def add_book(cursor):
 
 def mainloop():
     # connect to library_system
-    cnx, username = db_connect()
-    cur = cnx.cursor();
+    conn, username = db_connect()
     print()
     print(f"Welcome to the inter-library database system, {username}! This is for librarian access only!")
    
@@ -252,29 +288,36 @@ def mainloop():
             case '0':
                 quit_main_loop = True
             case '1':
-                book_checkout(cur)
+                book_checkout(conn)
             case '2':
-                book_return(cur)
+                book_return(conn)
             case '3':
-                add_book(cur)
+                add_book(conn)
             case '4':
-                search_books(cur)
+                search_books(conn)
             case '5':
-                cur.execute("CALL view_all_overdue_books();")
+                with conn.cursor() as cursor:
+                    try:
+                        cursor.execute("CALL view_all_overdue_books();")
+                    finally:
+                        cursor.close()
             case '6':
-                cur.execute("CALL view_all_late_fees();")
+                with conn.cursor() as cursor:
+                    try:
+                        cursor.execute("CALL view_all_late_fees();")
+                    finally:
+                        cursor.close()
             case '7':
-                pay_fine(cur)
+                pay_fine(conn)
             case '8':
-                manage_members(cur)
+                manage_members(conn)
             case _:
                 print()
                 print(f"{choice} is invalid.")
                 input("Press enter to return to the menu.")
 
     print("\nExiting database. Goodbye!")
-    cur.close()
-    cnx.close()
+    conn.close()
 
 def main():
     mainloop()
