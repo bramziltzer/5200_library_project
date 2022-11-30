@@ -112,7 +112,7 @@ def manage_members(conn):
     quit_loop = False
     while not quit_loop:
         print("Member Management Menu. Type the corresponding number to continue.")
-        print("0: Return to main menu \n1: Add member \n2: Remove member")
+        print("0: Return to main menu \n1: Add member \n2: Remove member \n3: View all members")
 
         choice = input("> ")
         match choice:
@@ -135,7 +135,9 @@ def manage_members(conn):
                         cursor.execute(stmt, (member_email, member_name))
                         data = cursor.fetchone()
                         new_id = data.get("member_id")
-                        print(f"Member added. Their new Member ID is: {new_id}")
+                        print()
+                        print(f"Member added! Their new Member ID is: {new_id}")
+                        print()
                     except Exception as e:
                         print(e)
                 
@@ -160,6 +162,17 @@ def manage_members(conn):
                         input("Member deletion canceled. Press enter to return to the member management menu.")
                     else:
                         print(f"{choice} is invalid!")
+            
+            # view members
+            case '3':
+                with conn.cursor() as cursor:
+                    try:
+                        cursor.execute("SELECT * FROM member ORDER BY member_id;")
+                        data = cursor.fetchall()
+                        for each in data:
+                            print(each)
+                    except Exception as e:
+                        print(e)
 
             # bad input
             case _:
