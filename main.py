@@ -1,6 +1,6 @@
 import pymysql
 
-# TODO add try except to execute statements
+# TODO fix try except to execute statements- handle specific errors
 def db_connect():
     # prompt for username and password
     print("Please provide your MySQL username and password to enter the library database.")
@@ -17,7 +17,8 @@ def db_connect():
                 password= password,
                 db='library_system', 
                 charset='utf8mb4', 
-                cursorclass= pymysql.cursors.DictCursor
+                cursorclass= pymysql.cursors.DictCursor,
+                autocommit= True
             )
             good_login = True
             
@@ -71,8 +72,8 @@ def search_books(conn):
                             print(each) # TODO formatting
                         print()
                         input("Press enter to return to search menu.")
-                finally:
-                    cursor.close()
+                except Exception as e:
+                    print(e)
 
 
 def pay_fine(conn):
@@ -103,8 +104,8 @@ def pay_fine(conn):
 
             print()
             input("Press enter to return to main menu.")
-        finally:
-            cursor.close()
+        except Exception as e:
+            print(e)
     
 
 def manage_members(conn):
@@ -129,12 +130,14 @@ def manage_members(conn):
                         stmt = "CALL add_member(%s, %s);"
                         cursor.execute(stmt, (member_email, member_name))
 
-                        cursor.execute("SELECT * FROM member WHERE name = member_name AND email = member_email;")
+                        # display new member id
+                        stmt = "SELECT * FROM member WHERE email = %s AND name = %s;"
+                        cursor.execute(stmt, (member_email, member_name))
                         data = cursor.fetchone()
                         new_id = data.get("member_id")
                         print(f"Member added. Their new Member ID is: {new_id}")
-                    finally:
-                        cursor.close()
+                    except Exception as e:
+                        print(e)
                 
             # remove member
             case '2':
@@ -150,8 +153,8 @@ def manage_members(conn):
                                 stmt = "CALL remove_member(%s)"
                                 cursor.execute(stmt, member_id)
                                 # TODO add confirmation or error message
-                            finally:
-                                cursor.close()
+                            except Exception as e:
+                                print(e)
                     elif choice.lower() == "n":
                         good_input = True
                         input("Member deletion canceled. Press enter to return to the member management menu.")
@@ -182,9 +185,11 @@ def book_checkout(conn):
                 try:
                     stmt = "CALL check_out_books(%s, %s, %s);"
                     cursor.execute(stmt, (book_copy_id, member_id, librarian_id))
+                    print()
                     print("Successfully added!") # TODO add better user feedback
-                finally:
-                    cursor.close()
+                    print()
+                except Exception as e:
+                    print(e)
         elif choice.lower() == "n":
             good_input = True
             input("Book checkout canceled. Press enter to return to the main menu.")
@@ -205,8 +210,8 @@ def book_return(conn):
                 try:
                     stmt = "CALL return_books(%s);"
                     cursor.execute(stmt, book_copy_id)
-                finally:
-                    cursor.close()
+                except Exception as e:
+                    print(e)
         elif choice.lower() == "n":
             good_input = True
             input("Book return canceled. Press enter to return to the main menu.")
@@ -229,16 +234,7 @@ def add_book(conn):
     library_id = input("Library ID: ")
     num_copies = input("Number of copies of this book to add to system: ")
     print()
-    
-    '''print()
-    print("Your response:")
-    print(f"ISBN: {isbn} \nTitle: {title} \nAuthor ID: {author_id}" +
-            f"\nGenre{genre} \nNumber of pages: {num_pages}" +
-            f"\nYear published: {year_published} \nPublisher ID: " +
-            f"{publisher_id} \nLibrary ID: {library_id} \nNumber of copies " +
-            f"to add: {num_copies}\n")
-    '''
-    
+
     good_input = False
     while not good_input:
         choice = input("Type y and press enter to add to system or n to cancel: ")
@@ -249,8 +245,8 @@ def add_book(conn):
                     stmt = "CALL add_book(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                     cursor.execute(stmt, (isbn, title, author_id, genre, num_pages, 
                                     year_published, publisher_id, library_id, num_copies))
-                finally:
-                    cursor.close()
+                except Exception as e:
+                    print(e)
         elif choice.lower() == "n":
             good_input = True
             input("Book entry canceled. Press enter to return to the main menu.")
@@ -299,14 +295,14 @@ def mainloop():
                 with conn.cursor() as cursor:
                     try:
                         cursor.execute("CALL view_all_overdue_books();")
-                    finally:
-                        cursor.close()
+                    except Exception as e:
+                        print(e)
             case '6':
                 with conn.cursor() as cursor:
                     try:
                         cursor.execute("CALL view_all_late_fees();")
-                    finally:
-                        cursor.close()
+                    except Exception as e:
+                        print(e)
             case '7':
                 pay_fine(conn)
             case '8':
