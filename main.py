@@ -66,8 +66,11 @@ def search_books(conn):
                     cursor.execute(stmt, (search_type, content))
                     data = cursor.fetchall()
                     if not data:
-                        print("No results found for {search_type}: {content}")
+                        print()
+                        print(f"No results found for {search_type}: {content}")
+                        print()
                     else:
+                        print()
                         for each in data:
                             print(each) # TODO formatting
                         print()
