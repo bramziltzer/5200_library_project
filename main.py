@@ -336,3 +336,14 @@ def main():
 
 if __name__ == "__main__" :
     main()
+
+# issues
+# need error message for payment < 0
+# need to fix the view late fees
+# fix paying fines
+# display error message for checking out checked out book
+# need to fetch error messages
+# validation for adding a book
+# add message for adding book
+# didn't add book successfully- need to fetch the error
+# add message for returning a book
