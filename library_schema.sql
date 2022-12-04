@@ -22,6 +22,11 @@ CREATE TABLE library_branch (
     ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
+ALTER TABLE library_branch ADD library_name VARCHAR(64) NOT NULL;
+UPDATE `library_system`.`library_branch` SET `library_name` = 'Snell Library' WHERE (`library_id` = '1');
+UPDATE `library_system`.`library_branch` SET `library_name` = 'Western Library' WHERE (`library_id` = '2');
+UPDATE `library_system`.`library_branch` SET `library_name` = 'Great Library' WHERE (`library_id` = '3');
+
 CREATE TABLE genre_type (
 	genre VARCHAR(64) PRIMARY KEY
 );
@@ -174,6 +179,9 @@ clf:BEGIN
     LEAVE clf;
   ELSEIF(EXISTS(SELECT * FROM book WHERE isbn = isbn_p)) THEN
     SELECT 'ISBN already exists!';
+    LEAVE clf;
+  ELSEIF(NOT EXISTS(SELECT * FROM genre_type WHERE genre = genre_p)) THEN
+    SELECT 'Genre not exists!';
     LEAVE clf;
   ELSE
   
