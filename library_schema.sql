@@ -193,7 +193,7 @@ clf:BEGIN
     SET loop_var = loop_var - 1;
   END WHILE;
   END IF;
-  SELECT 'Successfully added book to the database!'
+  SELECT 'Successfully added book to the database!';
 END $$
 DELIMITER ;
 
