@@ -169,19 +169,19 @@ clf:BEGIN
   DECLARE loop_var INT;
   SET loop_var = num_copies_to_add_p;
   IF(NOT EXISTS(SELECT * FROM author WHERE author_id = author_id_p)) THEN
-    SELECT 'Author not exists!';
+    SELECT 'Author does not exist!';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM publisher WHERE publisher_id = publisher_id_p)) THEN
-    SELECT 'Publisher not exists!';
+    SELECT 'Publisher does not exist!';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM library_branch WHERE library_id = library_id_p)) THEN
-    SELECT 'Library not exists!';
+    SELECT 'Library does not exist!';
     LEAVE clf;
   ELSEIF(EXISTS(SELECT * FROM book WHERE isbn = isbn_p)) THEN
     SELECT 'ISBN already exists!';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM genre_type WHERE genre = genre_p)) THEN
-    SELECT 'Genre not exists!';
+    SELECT 'Genre does not exist!';
     LEAVE clf;
   ELSE
   
@@ -193,6 +193,7 @@ clf:BEGIN
     SET loop_var = loop_var - 1;
   END WHILE;
   END IF;
+  SELECT 'Successfully added book to the database!'
 END $$
 DELIMITER ;
 
@@ -370,7 +371,7 @@ DELIMITER ;
 
 DELIMITER $$
 CREATE EVENT overdue_book_check
-	ON SCHEDULE EVERY 1 DAY STARTS STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 1 DAY)
+	ON SCHEDULE EVERY 1 HOUR
 	DO BEGIN
 		DECLARE max_days_past_due INT DEFAULT 45;
         DECLARE copy_id_var INT;
