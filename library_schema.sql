@@ -287,11 +287,13 @@ DELIMITER $$
 CREATE PROCEDURE return_books (book_copy_id_p INT)
 clf: BEGIN
   IF (NOT EXISTS(SELECT * FROM book_copy WHERE book_copy_id = book_copy_id_p AND is_checked_out = TRUE)) THEN
-    SELECT'Book is not checked out!';
+    SELECT "Book with ID you entered is not checked out!";
     LEAVE clf;
   ELSE 
     UPDATE book_copy SET is_checked_out = FALSE WHERE book_copy_id = book_copy_id_p;
     UPDATE book_checkout SET is_returned = TRUE WHERE book_copy_id = book_copy_id_p;
+
+    SELECT "Book successfully returned!";
   END IF;
 END $$
 DELIMITER ;
@@ -350,9 +352,6 @@ clf: BEGIN
   
 END $$
 DELIMITER ;
-
--- check out book
--- return book
 
 -- late fee daily event
 SET GLOBAL event_scheduler = ON;
