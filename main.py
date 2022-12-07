@@ -236,21 +236,93 @@ def book_return(conn):
     
 
 def add_book(conn):
-    # TODO add cancel option
-    # TODO add data validation (in sql?)
     print("Add a book to the database using this menu. You'll be asked to " +
             "confirm details before submitting.")
-    isbn = input("ISBN (13 digits): ")
+    
+    # get isbn
+    good_isbn = False
+    while not good_isbn:
+        isbn = input("ISBN (13 digits): ")
+        if len(isbn) != 13 or not isbn.isnumeric():
+            print("ISBN must be a 13 digit number! Please try again.")
+        else:
+            good_isbn = True
+
     title = input("Title: ")
-    author_id = input("Author ID: ")
-    genre = input("Genre: ")
-    num_pages = input("Number of pages: ")
-    year_published = input("Year published, formatted YYYY: ")
-    publisher_id = input("Publisher ID: ")
-    library_id = input("Library ID: ")
-    num_copies = input("Number of copies of this book to add to system: ")
+
+    # validate author
+    good_author = False
+    while not good_author:
+        author_id = input("Author ID: ")
+        if author_id.isnumeric():
+            good_author = True
+        else:
+            print("Author ID must be an integer! Please try again.")
+
+    # select genre
+    print("Available genres:")
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM genre_type;")
+        data = cursor.fetchall()
+        lst = []
+        for i in range(len(data)):
+            print(data[i]["genre"])
+            lst.append(data[i]["genre"].lower())
+
+    # validate genre
+    good_genre = False
+    while not good_genre:
+        genre = input("Select one genre: ")
+        if genre.lower() in lst:
+            good_genre = True
+        else:
+            print(f"{genre} is not valid! Please try again.")
+    print()
+    
+    # validate number of pages
+    good_pages = False
+    while not good_pages:
+        num_pages = input("Number of pages: ")
+        if num_pages.isnumeric() and int(num_pages) > 0:
+            good_pages = True
+        else:
+            print(f"Number of pages must be a positive number! You entered {num_pages}.")
+        
+    # validate year_published
+    good_year = False
+    while not good_year:
+        year_published = input("Year published, formatted YYYY: ")
+        if len(year_published) == 4 and year_published.isnumeric():
+            good_year = True
+        else:
+            print(f"Year published must be a 4 digit number! You entered {year_published}.")
+    
+    # validate publisher
+    good_publisher = False
+    while not good_publisher:
+        publisher_id = input("Publisher ID: ")
+        if publisher_id.isnumeric():
+            good_publisher = True
+        else:
+            print("Publisher ID must be an integer! Please try again.")
+
+    # validate library
+    good_library = False
+    while not good_library:
+        library_id = input("Library ID: ")
+        if library_id.isnumeric():
+            good_library = True
+        else:
+            print("Library ID must be an integer! Please try again.")
+
+    good_copies = False
+    while not good_copies:
+        num_copies = input("Number of copies of this book to add to system: ")
+        if num_copies.isnumeric():
+            good_copies = True
     print()
 
+    # confirm entry into database
     good_input = False
     while not good_input:
         choice = input("Type y and press enter to add to system or n to cancel: ")
@@ -261,8 +333,18 @@ def add_book(conn):
                     stmt = "CALL add_book(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                     cursor.execute(stmt, (isbn, title, author_id, genre, num_pages, 
                                     year_published, publisher_id, library_id, num_copies))
+
+                    # confirmation message
+                    message = cursor.fetchone()
+                    print()
+                    for each in message:
+                        print(message[each])
+                    print()
+                    print("Press enter to return to the main menu.")
+
                 except Exception as e:
                     print(e)
+
         elif choice.lower() == "n":
             good_input = True
             input("Book entry canceled. Press enter to return to the main menu.")
@@ -338,6 +420,7 @@ if __name__ == "__main__" :
     main()
 
 # issues
+
 # need error message for payment < 0
 # need to fix the view late fees
 # fix paying fines
@@ -347,3 +430,4 @@ if __name__ == "__main__" :
 # add message for adding book
 # didn't add book successfully- need to fetch the error
 # add message for returning a book
+# add genre if it doesn't exist

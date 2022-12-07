@@ -169,19 +169,19 @@ clf:BEGIN
   DECLARE loop_var INT;
   SET loop_var = num_copies_to_add_p;
   IF(NOT EXISTS(SELECT * FROM author WHERE author_id = author_id_p)) THEN
-    SELECT 'Author does not exist!';
+    SELECT 'Author does not exist! Please try entry again.';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM publisher WHERE publisher_id = publisher_id_p)) THEN
-    SELECT 'Publisher does not exist!';
+    SELECT 'Publisher does not exist! Please try entry again.';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM library_branch WHERE library_id = library_id_p)) THEN
-    SELECT 'Library does not exist!';
+    SELECT 'Library does not exist! Please try entry again.';
     LEAVE clf;
   ELSEIF(EXISTS(SELECT * FROM book WHERE isbn = isbn_p)) THEN
-    SELECT 'ISBN already exists!';
+    SELECT 'ISBN already exists in the system! Make sure you use the correct number.';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM genre_type WHERE genre = genre_p)) THEN
-    SELECT 'Genre does not exist!';
+    SELECT 'Genre does not exist! Please try entry again.';
     LEAVE clf;
   ELSE
   
@@ -218,10 +218,10 @@ DELIMITER $$
 CREATE PROCEDURE remove_member (member_id_p INT)
 clf:BEGIN
   IF(NOT EXISTS(SELECT * FROM member WHERE member_id = member_id_p)) THEN
-    SELECT 'Member not exists!';
+    SELECT 'Member does not exist!';
     LEAVE clf;
   ELSEIF(EXISTS(SELECT * FROM book_checkout WHERE member_id = member_id_p AND is_returned = FALSE)) THEN
-    SELECT 'Member has checked out books!';
+    SELECT 'Member has checked out books and cannot be deleted.';
     LEAVE clf;
   ELSE
     DELETE FROM member WHERE member_id = member_id_p;
