@@ -337,10 +337,12 @@ clf: BEGIN
   ELSEIF(NOT EXISTS(SELECT * FROM member WHERE member_id = member_id_p)) THEN
     SELECT 'Member not exists!';
   	LEAVE clf;
-  	UPDATE member 
+  END IF;
+  
+  UPDATE member 
     	SET fine_balance = fine_balance - fee_amount_p 
       WHERE member_id = member_id_p;
-	END IF;
+
   
   IF (SELECT fine_balance FROM member WHERE member_id = member_id_p) < 0 THEN
   	UPDATE member SET fine_balance = 0 WHERE member_id = member_id_p;
