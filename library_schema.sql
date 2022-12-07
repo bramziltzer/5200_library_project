@@ -328,7 +328,7 @@ DELIMITER ;
 
 -- clear late fees
 DELIMITER $$
-CREATE PROCEDURE pay_late_fee (member_id_p INT, fee_amount_p INT)
+CREATE PROCEDURE pay_late_fee (member_id_p INT, fee_amount_p DECIMAL(9,2))
 clf: BEGIN
 	
   IF fee_amount_p <= 0 THEN
@@ -338,7 +338,7 @@ clf: BEGIN
     SELECT 'Member not exists!';
   	LEAVE clf;
   END IF;
-  
+
   UPDATE member 
     	SET fine_balance = fine_balance - fee_amount_p 
       WHERE member_id = member_id_p;
