@@ -57,7 +57,6 @@ def search_books(conn):
                 input("Press enter to return to the search menu.")
                 print()
 
-        # don't 
         if content is not None:
             # TODO decide what to print, should include number of available books to checkout if any
             stmt = "CALL search_books(%s, %s);"
@@ -82,31 +81,50 @@ def search_books(conn):
 def pay_fine(conn):
     # TODO payment input validation
     print("Late Fee Payment Menu.")
-    member = input("Member ID: ")
+    good_id = False
+    while not good_id:
+        member = input("Member ID: ")
+        if member.isnumeric():
+            good_id = True
+        else:
+            print("Member ID must be a number! Please try again")
 
     with conn.cursor() as cursor:
         try:
             cursor.execute("CALL search_one_member(%s)", member)
             data = cursor.fetchone()
-            name = data.get("name")
-            balance = data.get("fine_balance")
+            
+            # if data is empty, no member found
+            if not data:
+                print()
+                input(f"Member with ID {member} could not be found! Press enter to return to the main menu.")
+            else:
+                name = data.get("name")
+                balance = data.get("fine_balance")
 
-            print()
-            print(f"Member: {name} \nLate Fee Balance: {balance}")
-            print()
-            payment = input("Enter payment amount: ")
+                print()
+                print(f"Member: {name} \nLate Fee Balance: ${balance}")
+                print()
 
-            stmt = "CALL pay_late_fee(%s, %s);"
-            cursor.execute(stmt, (member, payment))
+                good_payment = False
+                while not good_payment:
+                    payment = input("Enter payment amount: ")
+                    if float(payment) >= 0 and payment.replace('.', '', 1).isnumeric(): # decimal is allowed
+                        good_payment = True
+                    else:
+                        print("Amount must be a non-negative integer! Please try again.")
 
-            # return new balance
-            cursor.execute("CALL search_one_member(%s)", member)
-            data = cursor.fetchone()
-            balance = data.get("fine_balance")
-            print(f"{name}'s new balance: {balance}")
+                stmt = "CALL pay_late_fee(%s, %s);"
+                cursor.execute(stmt, (member, payment))
 
-            print()
-            input("Press enter to return to main menu.")
+                # return new balance
+                cursor.execute("CALL search_one_member(%s)", member)
+                data = cursor.fetchone()
+                balance = data.get("fine_balance")
+                print(f"{name}'s new balance: ${balance}")
+
+                print()
+                input("Press enter to return to main menu.")
         except Exception as e:
             print(e)
     
@@ -212,11 +230,44 @@ def book_checkout(conn):
         else:
             print(f"{choice} is invalid!")
 
+def view_overdue_books(conn):
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute("CALL view_all_overdue_books();")
+            data = cursor.fetchall()
+            print("Overdue books:")
+            for each in data:
+                print(data)
+        except Exception as e:
+            print(e)
+        print()
+        input("Press enter to return to the main menu.")
 
+def view_late_fees(conn):
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute("CALL view_all_late_fees();")
+            data = cursor.fetchall()
+            print("Members with late fees:")
+            for each in data:
+                print(data)
+        except Exception as e:
+            print(e)
+        print()
+        input("Press enter to return to the main menu.")
+        
 def book_return(conn):
     # TODO add validation
     print("Book return menu.")
-    book_copy_id = input("Book Copy ID to return (Located on the sticker on the back of the book, NOT the ISBN): ")
+    
+    good_id = False
+    while not good_id:
+        book_copy_id = input("Book Copy ID to return (Located on the sticker on the back of the book, NOT the ISBN): ")
+        if book_copy_id.isdigit():
+            good_id = True
+        else:
+            print("Book Copy ID must be a number! Please try again.")
+        
     good_input = False
     while not good_input:
         choice = input("Type y and press enter to return book or n to cancel: ")
@@ -226,11 +277,19 @@ def book_return(conn):
                 try:
                     stmt = "CALL return_books(%s);"
                     cursor.execute(stmt, book_copy_id)
+                    status = cursor.fetchone()
+                    print()
+                    for each in status:
+                        print(status[each])
+                    print()
                 except Exception as e:
                     print(e)
+            input("Press enter to return to the main menu.")
+
         elif choice.lower() == "n":
             good_input = True
             input("Book return canceled. Press enter to return to the main menu.")
+
         else:
             print(f"{choice} is invalid!")
     
@@ -364,7 +423,7 @@ def mainloop():
         4: "Search books", 
         5: "View overdue books",
         6: "View all late fees",
-        7: "Pay fine",
+        7: "Pay late fee balance",
         8: "View/manage members",
         0: "Quit",
         }
@@ -390,17 +449,9 @@ def mainloop():
             case '4':
                 search_books(conn)
             case '5':
-                with conn.cursor() as cursor:
-                    try:
-                        cursor.execute("CALL view_all_overdue_books();")
-                    except Exception as e:
-                        print(e)
+                view_overdue_books(conn)
             case '6':
-                with conn.cursor() as cursor:
-                    try:
-                        cursor.execute("CALL view_all_late_fees();")
-                    except Exception as e:
-                        print(e)
+                view_late_fees(conn)
             case '7':
                 pay_fine(conn)
             case '8':
@@ -419,15 +470,20 @@ def main():
 if __name__ == "__main__" :
     main()
 
-# issues
+'''
+To fix:
+- need to fetch error messages
+- add message for returning a book
 
-# need error message for payment < 0
-# need to fix the view late fees
-# fix paying fines
-# display error message for checking out checked out book
-# need to fetch error messages
-# validation for adding a book
-# add message for adding book
-# didn't add book successfully- need to fetch the error
-# add message for returning a book
-# add genre if it doesn't exist
+To test:
+- display error message for checking out checked out book
+- need error message for payment < 0
+- view overdue books
+- need to fix the view late fees
+- validation for add_book
+- fetch error for add_book
+- add_book genre validation
+
+Done:
+- fix paying fines
+'''
