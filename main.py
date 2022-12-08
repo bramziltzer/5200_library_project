@@ -144,7 +144,7 @@ def manage_members(conn):
     quit_loop = False
     while not quit_loop:
         print("Member Management Menu. Type the corresponding number to continue.")
-        print("0: Return to main menu \n1: Add member \n2: Remove member \n3: View all members")
+        print("0: Return to main menu \n1: Add member \n2: Remove member \n3: Update member's email \n4: View all members")
 
         choice = input("> ")
         match choice:
@@ -173,8 +173,14 @@ def manage_members(conn):
                 
             # remove member
             case '2':
-                member_id = input("Member ID to delete: ")
-
+                good_id = False
+                while not good_id:
+                    member_id = input("Member ID to delete: ")
+                    if member_id.isdigit():
+                        good_id = True
+                    else:
+                        print("Member ID must be a number! Please try again.")
+                
                 good_input = False
                 while not good_input:
                     choice = input("Type y to delete member or n to cancel. THIS CAN'T BE UNDONE: ")
@@ -197,8 +203,33 @@ def manage_members(conn):
                     else:
                         print(f"{choice} is invalid!")
             
-            # view members
+            # update email
             case '3':
+                good_id = False
+                while not good_id:
+                    member_id = input("Member ID for email update: ")
+                    if member_id.isdigit():
+                        good_id = True
+                    else:
+                        print("Member ID must be a number! Please try again.")
+
+                email = input("Member's new email: ")
+                with conn.cursor() as cursor:
+                    try:
+                        stmt = "CALL update_email (%s, %s)"
+                        cursor.execute(stmt, (member_id, email))
+                        message = cursor.fetchone()
+                        print()
+                        for each in message:
+                            print(message[each])
+                        print()
+                        input("Press enter to return to the Member Management menu.")
+                        print()
+                    except Exception as e:
+                        print(e)
+                
+            # view members
+            case '4':
                 with conn.cursor() as cursor:
                     try:
                         cursor.execute("SELECT * FROM member ORDER BY member_id;")
@@ -513,14 +544,13 @@ Future work:
 - provide more natural input mechanism for books
 - add a way to automatically send email to members with overdue books
 - email validation
+- better security
 
 To do:
-- fix remove member message
-- add search all books function
-- add a book that's > 45 days late manually, make sure their fine doesn't grow each event
+- update email
 
 To fix:
-- book_checkout has duplicates in it
+
 
 To test:
 - display error message for checking out checked out book
@@ -534,7 +564,10 @@ To test:
 - fetch error message for remove member and checkout book
 
 Done:
+- fix remove member message
 - fix paying fines
+- add a book that's > 45 days late manually, make sure their fine doesn't grow each event
+- book_checkout has duplicates in it
 
 NOTE- our add_book and search functionality doesn't support multiple authors but our schema does
 '''

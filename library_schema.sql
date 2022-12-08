@@ -240,7 +240,7 @@ clf:BEGIN
     LEAVE clf;
   ELSE
     UPDATE member SET email = email_p WHERE member_id = member_id_p;
-    SELECT 'Member"s email updated successfully';
+    SELECT "Member's email updated successfully";
   END IF;
 END $$
 DELIMITER ;
