@@ -158,15 +158,14 @@ def manage_members(conn):
                     try: 
                         stmt = "CALL add_member(%s, %s);"
                         cursor.execute(stmt, (member_email, member_name))
+                        message = cursor.fetchone()
 
-                        # display new member id
-                        stmt = "SELECT * FROM member WHERE email = %s AND name = %s;"
-                        cursor.execute(stmt, (member_email, member_name))
-                        data = cursor.fetchone()
-                        new_id = data.get("member_id")
+                        # print status message
                         print()
-                        print(f"Member added! Their new Member ID is: {new_id}")
+                        for each in message:
+                            print(message[each])
                         print()
+                        input("Press enter to return to the Member Management menu.")
                     except Exception as e:
                         print(e)
                 
