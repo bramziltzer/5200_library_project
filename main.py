@@ -1,4 +1,5 @@
 import pymysql
+from prettytable import PrettyTable
 
 # TODO fix try except to execute statements- handle specific errors
 def db_connect():
@@ -58,9 +59,9 @@ def search_books(conn):
 
         if content is not None:
             # TODO decide what to print, should include number of available books to checkout if any
-            stmt = "CALL search_books(%s, %s);"
             with conn.cursor() as cursor:
                 try:
+                    stmt = "CALL search_books(%s, %s);"
                     cursor.execute(stmt, (search_type, content))
                     data = cursor.fetchall()
                     if not data:
@@ -68,9 +69,17 @@ def search_books(conn):
                         print(f"No results found for {search_type}: {content}")
                         print()
                     else:
-                        print()
+                        table = PrettyTable()
+                        table.field_names = ["Title", "Author(s)", "Genre", 
+                            "ISBN", "Copy ID", "Publisher", "Published", 
+                            "Library Branch", "Checked Out?"]
+                        # TODO formatting
                         for each in data:
-                            print(each) # TODO formatting
+                            table.add_row([each['title'].title(), each['authors'], each['genre'],
+                                each['isbn'], each['book_copy_id'], each['publisher_name'],
+                                each['year_published'], each['library_name'], 
+                                bool(int(each['is_checked_out']))])
+                        print(table)
                         print()
                         input("Press enter to return to search menu.")
                 except Exception as e:
@@ -470,6 +479,9 @@ if __name__ == "__main__" :
     main()
 
 '''
+To do:
+- add search all books function
+
 To fix:
 - need to fetch error messages
 
