@@ -1,7 +1,6 @@
 import pymysql
 from prettytable import PrettyTable
 
-# TODO fix try except to execute statements- handle specific errors
 def db_connect():
     # prompt for username and password
     print("Please provide your MySQL username and password to enter the library database.")
@@ -30,7 +29,6 @@ def db_connect():
     return conn, username
 
 def search_books(conn):
-    # TODO show list of available options before they search?
     quit_loop = False
     while not quit_loop:
         print("Book Search Menu. Type the corresponding number to continue.")
@@ -58,7 +56,6 @@ def search_books(conn):
                 print()
 
         if content is not None:
-            # TODO decide what to print, should include number of available books to checkout if any
             with conn.cursor() as cursor:
                 try:
                     stmt = "CALL search_books(%s, %s);"
@@ -94,7 +91,6 @@ def search_books(conn):
 
 
 def pay_fine(conn):
-    # TODO payment input validation
     print("Late Fee Payment Menu.")
     good_id = False
     while not good_id:
@@ -157,7 +153,6 @@ def manage_members(conn):
             
             # add member
             case '1':
-                # TODO validate email?
                 member_name = input("New member's full name: ")
                 member_email = input("New member's email: ")
 
@@ -264,14 +259,17 @@ def view_overdue_books(conn):
         try:
             cursor.execute("CALL view_all_overdue_books();")
             data = cursor.fetchall()
-            table = PrettyTable()
-            table.field_names = ['Book Copy ID', 'Title', 'isbn', 'Checked Out By', 'Member ID','Checked Out On', 'Days Late', 'Fined?']
-            for each in data:
-                table.add_row([each['book_copy_id'], each['title'].title(), each['isbn'],
-                     each['name'].title(), each['member_id'], each['date_checked_out'], each['days_late'],
-                    bool(int(each['is_fined']))])
+            if not data:
+                print("No overdue books!")
+            else:
+                table = PrettyTable()
+                table.field_names = ['Book Copy ID', 'Title', 'isbn', 'Checked Out By', 'Member ID','Checked Out On', 'Days Late', 'Fined?']
+                for each in data:
+                    table.add_row([each['book_copy_id'], each['title'].title(), each['isbn'],
+                        each['name'].title(), each['member_id'], each['date_checked_out'], each['days_late'],
+                        bool(int(each['is_fined']))])
 
-            print(table)
+                print(table)
         except Exception as e:
             print(e)
         print()
@@ -514,6 +512,7 @@ Future work:
 - add more search capability
 - provide more natural input mechanism for books
 - add a way to automatically send email to members with overdue books
+- email validation
 
 To do:
 - fix remove member message

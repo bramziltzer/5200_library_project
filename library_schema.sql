@@ -351,12 +351,12 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE view_all_overdue_books ()
 BEGIN
-  SELECT book_copy.book_copy_id, title, book.isbn, member.name, member.member_id, date_checked_out, is_fined, DATEDIFF(CURDATE(), date_checked_out) AS days_late
+  SELECT book_copy.book_copy_id, title, book.isbn, member.name, member.member_id, date_checked_out, is_fined, (DATEDIFF(CURDATE(), date_checked_out) - 44) AS days_late
 	FROM book_copy 
     INNER JOIN book ON book_copy.isbn = book.isbn
     INNER JOIN book_checkout ON book_copy.book_copy_id = book_checkout.book_copy_id
     INNER JOIN member ON member.member_id = book_checkout.member_id
-	WHERE book_copy.is_checked_out IS TRUE;
+	WHERE book_checkout.is_returned IS FALSE AND is_fined IS TRUE;
 END $$
 DELIMITER ;
 
