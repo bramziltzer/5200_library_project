@@ -238,7 +238,7 @@ DELIMITER $$
 CREATE PROCEDURE search_books (search_type_p VARCHAR(64), search_content VARCHAR(64))
 BEGIN
 
-	IF search_type_p = 'title' THEN
+  IF search_type_p = 'title' THEN
     SELECT * FROM book_copy WHERE isbn IN 
     (SELECT isbn FROM book WHERE title = search_content);
   ELSEIF search_type_p = 'author' THEN
@@ -262,13 +262,13 @@ clf:BEGIN
     SELECT'Book is already checked out!';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM book_copy WHERE book_copy_id = book_copy_id_p)) THEN
-    SELECT'Book copy not exists!';
+    SELECT'Book copy does not exist!';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM member WHERE member_id = member_id_p)) THEN
-    SELECT'Member not exists!';
+    SELECT'Member does not exist!';
     LEAVE clf;
   ELSEIF(NOT EXISTS(SELECT * FROM librarian WHERE librarian_id = librarian_id_p)) THEN
-    SELECT'Librarian not exists!';
+    SELECT'Librarian does not exist!';
     LEAVE clf;
   ELSE 
   UPDATE book_copy SET is_checked_out = TRUE WHERE book_copy_id = book_copy_id_p;
@@ -278,6 +278,7 @@ clf:BEGIN
                               member_id,
                               librarian_id)
   VALUES(book_copy_id_p, CURDATE(), member_id_p, librarian_id_p);
+  SELECT 'Successfully checked out book!'
   END IF;
 END $$
 DELIMITER ;
