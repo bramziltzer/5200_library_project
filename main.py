@@ -7,7 +7,6 @@ def db_connect():
 
     good_login = False
     while not good_login:
-        # TODO double check login error handling
         try:
             username = input("Username: ")
             password = input("Password: ")
@@ -473,7 +472,6 @@ if __name__ == "__main__" :
 '''
 To fix:
 - need to fetch error messages
-- add message for returning a book
 
 To test:
 - display error message for checking out checked out book
@@ -483,7 +481,10 @@ To test:
 - validation for add_book
 - fetch error for add_book
 - add_book genre validation
+- add message for returning a book
 
 Done:
 - fix paying fines
+
+NOTE- our add_book and search functionality doesn't support multiple authors but our schema does
 '''
