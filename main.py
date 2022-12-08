@@ -522,7 +522,6 @@ To do:
 
 To fix:
 - book_checkout has duplicates in it
-- need to fetch error messages
 
 To test:
 - display error message for checking out checked out book
@@ -533,6 +532,7 @@ To test:
 - fetch error for add_book
 - add_book genre validation
 - add message for returning a book
+- fetch error message for remove member and checkout book
 
 Done:
 - fix paying fines
