@@ -1,4 +1,3 @@
--- DROP DATABASE library_system;
 CREATE DATABASE IF NOT EXISTS library_system;
 USE library_system;
 -- easier to make one type of intended user, the librarian. 
@@ -232,7 +231,19 @@ clf:BEGIN
 END $$
 DELIMITER ;
 
--- TODO update member email
+-- update email
+DELIMITER $$
+CREATE PROCEDURE update_email (member_id_p INT, email_p VARCHAR(64))
+clf:BEGIN
+  IF(NOT EXISTS(SELECT * FROM member WHERE member_id = member_id_p)) THEN
+    SELECT 'Member does not exist!';
+    LEAVE clf;
+  ELSE
+    UPDATE member SET email = email_p WHERE member_id = member_id_p;
+    SELECT 'Member"s email updated successfully';
+  END IF;
+END $$
+DELIMITER ;
 
 
 -- Search by three types
@@ -349,15 +360,25 @@ DELIMITER ;
 
 -- View all overdue books
 DELIMITER $$
+
 CREATE PROCEDURE view_all_overdue_books ()
+
 BEGIN
+
   SELECT book_copy.book_copy_id, title, book.isbn, member.name, member.member_id, date_checked_out, is_fined, (DATEDIFF(CURDATE(), date_checked_out) - 44) AS days_late
-	FROM book_copy 
+
+  FROM book_copy
+
     INNER JOIN book ON book_copy.isbn = book.isbn
+
     INNER JOIN book_checkout ON book_copy.book_copy_id = book_checkout.book_copy_id
+
     INNER JOIN member ON member.member_id = book_checkout.member_id
-	WHERE book_checkout.is_returned IS FALSE AND is_fined IS TRUE;
+
+  WHERE book_checkout.is_returned IS FALSE AND is_fined IS TRUE;
+
 END $$
+
 DELIMITER ;
 
 -- clear late fees
@@ -389,11 +410,11 @@ DELIMITER ;
 SET GLOBAL event_scheduler = ON;
 DELIMITER $$
 CREATE PROCEDURE fine_member(member_id_p INT, fine_amount_p INT)
-	BEGIN
-    DECLARE EXIT HANDLER FOR NOT FOUND
+	clf:BEGIN
 	
     IF NOT EXISTS (SELECT member_id FROM member WHERE member_id = member_id_p) THEN
 		SELECT "Error! Could not fine member because given id was not found." AS message;
+        LEAVE clf;
     ELSE
 		UPDATE member
 			SET fine_balance = fine_balance + fine_amount_p
@@ -404,7 +425,7 @@ DELIMITER ;
 
 DELIMITER $$
 CREATE EVENT overdue_book_check
-	ON SCHEDULE EVERY 1 HOUR
+	ON SCHEDULE EVERY 1 MINUTE
 	DO BEGIN
 		DECLARE max_days_past_due INT DEFAULT 45;
         DECLARE copy_id_var INT;
@@ -432,7 +453,9 @@ CREATE EVENT overdue_book_check
 					SET is_fined = TRUE
 					WHERE transaction_id = transaction_id_var;
 				-- add fine to member balance
+                IF row_not_found = FALSE THEN
 				CALL fine_member(member_id_var, 100);
+                END IF;
 			END IF;
 		END WHILE;
         CLOSE book_cursor;
