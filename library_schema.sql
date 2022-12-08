@@ -207,6 +207,8 @@ clf:BEGIN
     LEAVE clf;
   ELSE
     INSERT INTO member(email, name, registration_date) VALUES(email_p, name_p, CURDATE());
+    SELECT CONCAT("Member added! Their new Member ID is: ", 
+      (SELECT member_id FROM member WHERE email = email_p AND name = name_p));
   END IF;
 END $$
 DELIMITER ;
