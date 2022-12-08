@@ -237,16 +237,41 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE search_books (search_type_p VARCHAR(64), search_content VARCHAR(64))
 BEGIN
-
-  IF search_type_p = 'title' THEN
-    SELECT * FROM book_copy WHERE isbn IN 
-    (SELECT isbn FROM book WHERE title = search_content);
+	IF search_type_p = 'title' THEN
+	SELECT book.title, GROUP_CONCAT(author_name) AS authors, genre, book.isbn, book_copy_id, publisher_name, year_published,
+			 library_name, is_checked_out
+		FROM book_copy 
+		NATURAL JOIN book
+		INNER JOIN library_branch ON book_copy.library_id = library_branch.library_id
+		INNER JOIN book_author ON book.isbn = book_author.isbn
+		INNER JOIN author ON book_author.author_id = author.author_id
+		INNER JOIN publisher ON book.publisher_id = publisher.publisher_id
+		GROUP BY isbn, genre, publisher_name, year_published, book.isbn, book.title, is_checked_out, library_name, book_copy_id
+		HAVING isbn IN (SELECT isbn FROM book WHERE title = search_content);
   ELSEIF search_type_p = 'author' THEN
-  	SELECT * FROM book_copy WHERE isbn IN 
-    (SELECT isbn FROM book_author WHERE author_id IN 
-     (SELECT author_id FROM author WHERE author_name = search_content));
+  	SELECT book.title, GROUP_CONCAT(author_name) AS authors, genre, book.isbn, book_copy_id, publisher_name, year_published,
+			 library_name, is_checked_out
+		FROM book_copy 
+		NATURAL JOIN book
+		INNER JOIN library_branch ON book_copy.library_id = library_branch.library_id
+		INNER JOIN book_author ON book.isbn = book_author.isbn
+		INNER JOIN author ON book_author.author_id = author.author_id
+		INNER JOIN publisher ON book.publisher_id = publisher.publisher_id
+		GROUP BY isbn, genre, publisher_name, year_published, book.isbn, book.title, is_checked_out, library_name, book_copy_id
+		HAVING isbn IN 
+			(SELECT isbn FROM book_author WHERE author_id IN 
+			 (SELECT author_id FROM author WHERE author_name = search_content));
   ELSEIF search_type_p = 'isbn' THEN
-  	SELECT * FROM book_copy WHERE isbn = search_content;
+  	SELECT book.title, GROUP_CONCAT(author_name) AS authors, genre, book.isbn, book_copy_id, publisher_name, year_published,
+		 library_name, is_checked_out
+	FROM book_copy 
+    NATURAL JOIN book
+    INNER JOIN library_branch ON book_copy.library_id = library_branch.library_id
+    INNER JOIN book_author ON book.isbn = book_author.isbn
+    INNER JOIN author ON book_author.author_id = author.author_id
+    INNER JOIN publisher ON book.publisher_id = publisher.publisher_id
+    GROUP BY isbn, genre, publisher_name, year_published, book.isbn, book.title, is_checked_out, library_name, book_copy_id
+    HAVING isbn = search_content;
   ELSE 
     SELECT 'Wrong Input! Please check and input again';
   END IF;
