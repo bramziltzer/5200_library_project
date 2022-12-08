@@ -221,7 +221,7 @@ clf:BEGIN
   IF(NOT EXISTS(SELECT * FROM member WHERE member_id = member_id_p)) THEN
     SELECT 'Member does not exist!';
     LEAVE clf;
-  ELSEIF(EXISTS(SELECT * FROM book_checkout WHERE member_id = member_id_p AND is_returned = FALSE)) THEN
+  ELSEIF(EXISTS(SELECT * FROM book_checkout WHERE member_id = member_id_p)) THEN
     SELECT 'Member has checked out books and cannot be deleted.';
     LEAVE clf;
   ELSE
