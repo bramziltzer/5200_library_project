@@ -69,16 +69,23 @@ def search_books(conn):
                         print(f"No results found for {search_type}: {content}")
                         print()
                     else:
+                        # pretty formatting
                         table = PrettyTable()
+                        table.align = "l"
+                        table.align["Copy ID"] = "c"
+                        table.align["Published"] = "c"
+                        table.align["Checked Out?"] = "c"
                         table.field_names = ["Title", "Author(s)", "Genre", 
                             "ISBN", "Copy ID", "Publisher", "Published", 
                             "Library Branch", "Checked Out?"]
-                        # TODO formatting
+                        
+                        # add rows to table
                         for each in data:
                             table.add_row([each['title'].title(), each['authors'], each['genre'],
                                 each['isbn'], each['book_copy_id'], each['publisher_name'],
                                 each['year_published'], each['library_name'], 
                                 bool(int(each['is_checked_out']))])
+
                         print(table)
                         print()
                         input("Press enter to return to search menu.")
@@ -187,7 +194,7 @@ def manage_members(conn):
                                 print(e)
                     elif choice.lower() == "n":
                         good_input = True
-                        input("Member deletion canceled. Press enter to return to the member management menu.")
+                        input("Member deletion canceled. Press enter to return to the Member Management menu.")
                     else:
                         print(f"{choice} is invalid!")
             
@@ -196,9 +203,16 @@ def manage_members(conn):
                 with conn.cursor() as cursor:
                     try:
                         cursor.execute("SELECT * FROM member ORDER BY member_id;")
+                        table = PrettyTable()
+                        table.align = "l"
+                        table.field_names = ['ID', 'Name', 'Email', 'Registered On', 'Fine Balance']
                         data = cursor.fetchall()
                         for each in data:
-                            print(each)
+                            table.add_row([each['member_id'], each['name'], each['email'], 
+                                each['registration_date'], each['fine_balance']])
+                        print(table)
+                        print()
+                        input("Press enter to return to the Member Management menu.")
                     except Exception as e:
                         print(e)
 
@@ -206,7 +220,7 @@ def manage_members(conn):
             case _:
                 print()
                 print(f"{choice} is invalid.")
-                input("Press enter to return to the member menu.")
+                input("Press enter to return to the Member Management menu.")
                 print()
 
 
@@ -242,9 +256,14 @@ def view_overdue_books(conn):
         try:
             cursor.execute("CALL view_all_overdue_books();")
             data = cursor.fetchall()
-            print("Overdue books:")
+            table = PrettyTable()
+            table.field_names = ['Book Copy ID', 'Title', 'isbn', 'Checked Out By', 'Member ID','Checked Out On', 'Days Late', 'Fined?']
             for each in data:
-                print(data)
+                table.add_row([each['book_copy_id'], each['title'].title(), each['isbn'],
+                     each['name'].title(), each['member_id'], each['date_checked_out'], each['days_late'],
+                    bool(int(each['is_fined']))])
+
+            print(table)
         except Exception as e:
             print(e)
         print()
@@ -256,8 +275,14 @@ def view_late_fees(conn):
             cursor.execute("CALL view_all_late_fees();")
             data = cursor.fetchall()
             print("Members with late fees:")
+            table = PrettyTable()
+            table.align['name'] = "l"
+            table.align['email'] = "l"
+            table.field_names = ['Member ID', 'Name', 'Email', 'Fine Balance']
             for each in data:
-                print(data)
+                table.add_row([each['member_id'], each['name'], each['email'], 
+                                "$" + str(each['fine_balance'])])
+            print(table)
         except Exception as e:
             print(e)
         print()
@@ -406,7 +431,7 @@ def add_book(conn):
                     for each in message:
                         print(message[each])
                     print()
-                    print("Press enter to return to the main menu.")
+                    input("Press enter to return to the main menu.")
 
                 except Exception as e:
                     print(e)
@@ -464,11 +489,10 @@ def mainloop():
             case '8':
                 manage_members(conn)
             case _:
-                print()
                 print(f"{choice} is invalid.")
                 input("Press enter to return to the menu.")
 
-    print("\nExiting database. Goodbye!")
+    print("Exiting database. Goodbye!\n")
     conn.close()
 
 def main():
@@ -478,10 +502,18 @@ if __name__ == "__main__" :
     main()
 
 '''
+Future work:
+- add more search capability
+- provide more natural input mechanism for books
+- add a way to automatically send email to members with overdue books
+
 To do:
+- fix remove member message
 - add search all books function
+- add a book that's > 45 days late manually, make sure their fine doesn't grow each event
 
 To fix:
+- book_checkout has duplicates in it
 - need to fetch error messages
 
 To test:
