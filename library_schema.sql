@@ -227,6 +227,7 @@ clf:BEGIN
     LEAVE clf;
   ELSE
     DELETE FROM member WHERE member_id = member_id_p;
+    SELECT 'Member successfully deleted';
   END IF;
 END $$
 DELIMITER ;
@@ -298,14 +299,14 @@ clf:BEGIN
     SELECT'Librarian does not exist!';
     LEAVE clf;
   ELSE 
-  UPDATE book_copy SET is_checked_out = TRUE WHERE book_copy_id = book_copy_id_p;
+	UPDATE book_copy SET is_checked_out = TRUE WHERE book_copy_id = book_copy_id_p;
   
-  INSERT INTO book_checkout (book_copy_id, 
+	INSERT INTO book_checkout (book_copy_id, 
                               date_checked_out,
                               member_id,
                               librarian_id)
   VALUES(book_copy_id_p, CURDATE(), member_id_p, librarian_id_p);
-  SELECT 'Successfully checked out book!'
+	SELECT "Successfully checked out book!";
   END IF;
 END $$
 DELIMITER ;

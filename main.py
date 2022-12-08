@@ -189,7 +189,11 @@ def manage_members(conn):
                             try:
                                 stmt = "CALL remove_member(%s)"
                                 cursor.execute(stmt, member_id)
-                                # TODO add confirmation or error message
+                                message = cursor.fetchone()
+                                print()
+                                for each in message:
+                                    print(message[each])
+                                print()
                             except Exception as e:
                                 print(e)
                     elif choice.lower() == "n":
@@ -240,8 +244,12 @@ def book_checkout(conn):
                 try:
                     stmt = "CALL check_out_books(%s, %s, %s);"
                     cursor.execute(stmt, (book_copy_id, member_id, librarian_id))
+
+                    # get status of transaction
+                    message = cursor.fetchone()
                     print()
-                    print("Successfully added!") # TODO add better user feedback
+                    for each in message:
+                        print(message[each])
                     print()
                 except Exception as e:
                     print(e)
