@@ -255,11 +255,31 @@ def manage_members(conn):
 
 
 def book_checkout(conn):
-    # TODO add validation
+    # validate input
     print("Book Checkout Menu.")
-    book_copy_id = input("Book Copy ID (Located on the sticker on the back of the book, NOT the ISBN): ")
-    member_id = input("Member ID number: ")
-    librarian_id = input("Librarian ID (your ID number): ")
+    good_id = False
+    while not good_id:
+        book_copy_id = input("Book Copy ID (Located on the sticker on the back of the book, NOT the ISBN): ")
+        if book_copy_id.isdigit():
+            good_id = True
+        else:
+            print("Book Copy ID must be a number! Please try again.")
+    
+    good_id = False
+    while not good_id:
+        member_id = input("Member ID number: ")
+        if member_id.isdigit():
+            good_id = True
+        else:
+            print("Member ID must be a number! Please try again.")
+    
+    good_id = False
+    while not good_id:
+        librarian_id = input("Librarian ID (your ID number): ")
+        if librarian_id.isdigit():
+            good_id = True
+        else:
+            print("Librarian ID must be a number! Please try again.")
     
     good_input = False
     while not good_input:
@@ -277,6 +297,7 @@ def book_checkout(conn):
                     for each in message:
                         print(message[each])
                     print()
+                    input("Press enter to return to the main menu.")
                 except Exception as e:
                     print(e)
         elif choice.lower() == "n":
@@ -326,7 +347,6 @@ def view_late_fees(conn):
         input("Press enter to return to the main menu.")
         
 def book_return(conn):
-    # TODO add validation
     print("Book return menu.")
     
     good_id = False
@@ -537,37 +557,3 @@ def main():
 
 if __name__ == "__main__" :
     main()
-
-'''
-Future work:
-- add more search capability
-- provide more natural input mechanism for books
-- add a way to automatically send email to members with overdue books
-- email validation
-- better security
-
-To do:
-- update email
-
-To fix:
-
-
-To test:
-- display error message for checking out checked out book
-- need error message for payment < 0
-- view overdue books
-- need to fix the view late fees
-- validation for add_book
-- fetch error for add_book
-- add_book genre validation
-- add message for returning a book
-- fetch error message for remove member and checkout book
-
-Done:
-- fix remove member message
-- fix paying fines
-- add a book that's > 45 days late manually, make sure their fine doesn't grow each event
-- book_checkout has duplicates in it
-
-NOTE- our add_book and search functionality doesn't support multiple authors but our schema does
-'''
