@@ -13,3 +13,5 @@ which creates the database and inserts sample data.
 Finally, navigate to the project folder containing 'main.py' and run the application in the command line using 'python3 city_library_system.py'.
 
 Use the root username and password for your MySQL server to log in.
+
+You may need to widen your shell window if a search table isn’t formatting correctly.
